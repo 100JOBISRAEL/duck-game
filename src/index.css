@@ -24,7 +24,7 @@ html, body {
   align-items: center;
   height: 100vh; /* Полная высота экрана */
   margin: 0;
-  background-color: #ffffff; /* Установите цвет фона */
+  background-color: #ecefff; /* Установите цвет фона */
 }
 
 .animation-container {

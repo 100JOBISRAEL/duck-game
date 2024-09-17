@@ -6,17 +6,16 @@ import tickets from './assets/tickets.png';
 import duckAnimation from './assets/duckcard.json';
 import loadingAnimation from './assets/animation.json';
 
-const cardsData = Array.from({ length: 12 }, (_, i) => ({ id: i + 1 }));
+const cardsData = Array.from({ length: 9 }, (_, i) => ({ id: i + 1 }));
 
 const App = () => {
   const [showAnimation, setShowAnimation] = useState(true);
   const [cards, setCards] = useState(cardsData);
   const [flippedCards, setFlippedCards] = useState([]);
   const [attemptsLeft, setAttemptsLeft] = useState(3);
-  const [gameOver, setGameOver] = useState(false);
-  const [won, setWon] = useState(false);
   const [cardsVisible, setCardsVisible] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [showAttemptsOver, setShowAttemptsOver] = useState(false);
 
   // Function to handle play
   const handlePlay = () => {
@@ -28,7 +27,7 @@ const App = () => {
   };
 
   const handleCardClick = (cardId) => {
-    if (flippedCards.length < 3 && !gameOver && !flippedCards.includes(cardId)) {
+    if (flippedCards.length < 3 && !flippedCards.includes(cardId) && attemptsLeft > 0) {
       const newCards = cards.map(card => {
         if (card.id === cardId) {
           return { ...card, isFlipped: true, coinAmount: generateRandomCoins() };
@@ -39,6 +38,10 @@ const App = () => {
       setCards(newCards);
       setFlippedCards([...flippedCards, cardId]);
       setAttemptsLeft(attemptsLeft - 1);
+    }
+
+    if (attemptsLeft === 1) {
+      setShowAttemptsOver(true);
     }
   };
 
@@ -84,44 +87,41 @@ const App = () => {
         </div>
       )}
       <div className={`main-content ${showAnimation ? 'hidden' : ''}`}>
-        {gameOver ? (
-          <div className="game-over">Game Over!</div>
-        ) : (
-          <>
-            {cardsVisible && (
-              <div className="status-bar">
-                <div className="status-item">
-                  <img src={logo1} alt="Total Ton" className="status-icon" />
-                  <span className="status-value">{totalCoins}</span>
-                </div>
-                <div className="status-item">
-                  <img src={tickets} alt="Attempts Left" className="status-icon" />
-                  <span className="status-value">{attemptsLeft}</span>
-                </div>
-              </div>
-            )}
-            <div className="card-grid-container">
-              <div className="card-grid">
-                {cards.map(card => (
-                  <div
-                    key={card.id}
-                    className={`card ${card.isFlipped ? 'flipped' : ''}`}
-                    onClick={() => handleCardClick(card.id)}
-                  >
-                    {card.isFlipped && (
-                      <div className="card-back">
-                        <p>{card.coinAmount || 0}</p>
-                      </div>
-                    )}
-                    {!card.isFlipped && (
-                      <Lottie options={defaultOptions} height={60} width={60} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+        {showAttemptsOver && (
+          <div className="attempts-over">All attempts are used up!</div>
         )}
+        {cardsVisible && (
+          <div className="status-bar">
+            <div className="status-item">
+              <img src={logo1} alt="Total Ton" className="status-icon" />
+              <span className="status-value">{totalCoins}</span>
+            </div>
+            <div className="status-item">
+              <img src={tickets} alt="Attempts Left" className="status-icon" />
+              <span className="status-value">{attemptsLeft}</span>
+            </div>
+          </div>
+        )}
+        <div className="card-grid-container">
+          <div className="card-grid">
+            {cards.map(card => (
+              <div
+                key={card.id}
+                className={`card ${card.isFlipped ? 'flipped' : ''}`}
+                onClick={() => handleCardClick(card.id)}
+              >
+                {card.isFlipped && (
+                  <div className="card-back">
+                    <p>{card.coinAmount || 0}</p>
+                  </div>
+                )}
+                {!card.isFlipped && (
+                  <Lottie options={defaultOptions} height={30} width={30} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
