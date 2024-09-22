@@ -30,52 +30,40 @@ const App = () => {
       setTaxiCount(newTaxiCount);
       setTonCount(newTonCount);
     }
+
+    if (storedMiningStartTime && !isMining) {
+      setIsMining(true);
+      startMining(storedMiningStartTime);
+    }
   }, []);
 
-  useEffect(() => {
-    let taxiInterval;
-    let tonInterval;
+  const startMining = (startTime) => {
+    const totalTime = 8 * 60 * 60; // 8 часов в секундах
+    const taxiPerSecond = 10000 / totalTime * 2;
+    const tonPerSecond = 0.001 / totalTime * 2;
 
-    if (isMining) {
-      const totalTime = 8 * 60 * 60; // 8 часов в секундах
-      const taxiPerSecond = 10000 / totalTime * 2;
-      const tonPerSecond = 0.001 / totalTime * 2;
+    const miningInterval = setInterval(() => {
+      setTaxiCount(prev => {
+        const newCount = Math.min(prev + taxiPerSecond, 10000);
+        localStorage.setItem('taxiCount', newCount);
+        return newCount;
+      });
 
-      taxiInterval = setInterval(() => {
-        setTaxiCount(prev => {
-          const newCount = Math.min(prev + taxiPerSecond, 10000);
-          localStorage.setItem('taxiCount', newCount);
-          return newCount;
-        });
-      }, 500);
+      setTonCount(prev => {
+        const newCount = Math.min(prev + tonPerSecond, 0.001);
+        localStorage.setItem('tonCount', newCount);
+        return newCount;
+      });
+    }, 500);
 
-      tonInterval = setInterval(() => {
-        setTonCount(prev => {
-          const newCount = Math.min(prev + tonPerSecond, 0.001);
-          localStorage.setItem('tonCount', newCount);
-          return newCount;
-        });
-      }, 500);
+    // Остановка через 8 часов
+    setTimeout(() => {
+      clearInterval(miningInterval);
+      localStorage.removeItem('miningStartTime'); // Убираем время майнинга после окончания
+      setIsMining(false);
+    }, totalTime * 1000);
 
-      setMiningStartTime(Date.now());
-      localStorage.setItem('miningStartTime', Date.now());
-
-      setTimeout(() => {
-        setIsMining(false);
-        clearInterval(taxiInterval);
-        clearInterval(tonInterval);
-        localStorage.removeItem('miningStartTime'); // Убираем время майнинга после окончания
-      }, totalTime * 1000);
-    }
-
-    return () => {
-      clearInterval(taxiInterval);
-      clearInterval(tonInterval);
-    };
-  }, [isMining]);
-
-  const startMining = () => {
-    setIsMining(true);
+    localStorage.setItem('miningStartTime', startTime);
   };
 
   return (
@@ -96,7 +84,7 @@ const App = () => {
         />
       </div>
       <div className="button-container">
-        <button className="button" onClick={startMining} disabled={isMining}>Start a working day</button>
+        <button className="button" onClick={() => startMining(Date.now())} disabled={isMining}>Start a working day</button>
         <button className="button" disabled={!isMining}>Stop Mining</button>
         <button className="button" disabled={!isMining}>Check Earnings</button>
       </div>
